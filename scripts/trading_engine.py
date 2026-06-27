@@ -9,6 +9,7 @@ os.environ.setdefault('HTTPS_PROXY', 'http://127.0.0.1:7890')
 sys.path.insert(0, '/tmp')
 
 import pandas as pd
+from collections import defaultdict
 import numpy as np
 from rigorous_backtest import fetch_klines, compute_all_indicators
 
@@ -191,21 +192,37 @@ def simulate_trades(df, signals, positions=None):
             c = df['Close'].iloc[i]
             d = i - p['entry_bar']
             
+            # Trailing stop: 2x ATR from lowest price since entry (for SHORT)
+            lowest = p.get('lowest_since_entry', p['entry_price'])
+            if c < lowest:
+                p['lowest_since_entry'] = c
+                lowest = c
+            
+            atr = df['atr_20'].iloc[i] if pd.notna(df['atr_20'].iloc[i]) else df['Close'].iloc[i] * 0.02
+            trail_stop = lowest + 2.0 * atr
+            
+            # Safety nets
             tp = p['entry_price'] * (1 - CFG['tp_pct']/100)
             sl = p['entry_price'] * (1 + CFG['sl_pct']/100)
+            max_days = CFG['hold_days'] * 2  # allow up to 15 days with trailing
             
-            if d >= CFG['hold_days']:
-                p['exit_bar'] = i; p['exit_price'] = c
-                p['return_pct'] = (p['entry_price']-c)/p['entry_price']*100
-                p['exit_reason'] = f'{CFG["hold_days"]}d'
-                trades.append(p); in_trade[s] = False; active[s] = None
+            exit_triggered = False
+            exit_price = c
+            exit_reason = ''
+            
+            if c >= trail_stop:
+                exit_triggered = True; exit_reason = 'trail'
+            elif c >= sl:
+                exit_triggered = True; exit_price = sl; exit_reason = 'SL'
             elif df['Low'].iloc[i] <= tp:
-                p['exit_bar'] = i; p['exit_price'] = tp
-                p['return_pct'] = CFG['tp_pct']; p['exit_reason'] = 'TP'
-                trades.append(p); in_trade[s] = False; active[s] = None
-            elif df['High'].iloc[i] >= sl:
-                p['exit_bar'] = i; p['exit_price'] = sl
-                p['return_pct'] = -CFG['sl_pct']; p['exit_reason'] = 'SL'
+                exit_triggered = True; exit_price = tp; exit_reason = 'TP'
+            elif d >= max_days:
+                exit_triggered = True; exit_reason = f'{max_days}d'
+            
+            if exit_triggered:
+                p['exit_bar'] = i; p['exit_price'] = exit_price
+                p['return_pct'] = (p['entry_price']-exit_price)/p['entry_price']*100
+                p['exit_reason'] = exit_reason
                 trades.append(p); in_trade[s] = False; active[s] = None
         
         if all(in_trade): continue
@@ -218,8 +235,10 @@ def simulate_trades(df, signals, positions=None):
         else: continue
         
         in_trade[s] = True
+        entry_p = df['Close'].iloc[i]
         active[s] = {'coin': sig.get('coin','?'), 'entry_bar': i,
-                     'entry_date': sig['date'], 'entry_price': df['Close'].iloc[i],
+                     'entry_date': sig['date'], 'entry_price': entry_p,
+                     'lowest_since_entry': df['Low'].iloc[i],
                      'quality': sig['quality'], 'direction': sig['direction'],
                      'state': sig['state'], 'trap_risk': sig['trap_risk'],
                      'position_usdt': CFG['position_size']}
@@ -265,21 +284,34 @@ def analyze_live(coin):
 # ═══════════════════════════════════════════
 
 def run_backtest(coins=None):
-    """跑全部币种的批量回测"""
+    """跑全部币种的批量回测——4并发槽位"""
     coins = coins or [c for c in COINS if HISTORICAL_PF.get(c,0) >= 0.6]
-    all_trades = []
+    all_signals = []
+    coin_dfs = {}
     coin_stats = {}
     
+    # Phase 1: fetch all coins, compute signals
     for coin in coins:
         try:
             df = fetch_klines(coin, limit=400)
         except: continue
         df = compute_all_indicators(df)
+        coin_dfs[coin] = df
         
-        signals = []
         for i in range(100, len(df)):
             sig = MarketState.evaluate(df, i)
-            if sig: sig['coin'] = coin; signals.append(sig)
+            if sig: sig['coin'] = coin; sig['df_key'] = coin; all_signals.append(sig)
+    
+    # Phase 2: sort signals by bar index, simulate with 4 concurrent slots
+    # Phase 2: simulate per-coin with trailing stop
+    all_trades = []
+    
+    for coin in coins:
+        df = coin_dfs.get(coin)
+        if df is None: continue
+        
+        signals = [s for s in all_signals if s['coin'] == coin]
+        if not signals: continue
         
         trades = simulate_trades(df, signals)
         if not trades: continue
@@ -293,7 +325,6 @@ def run_backtest(coins=None):
             'total_ret': sum(returns), 'avg_ret': np.mean(returns),
             'best': max(returns), 'worst': min(returns),
         }
-        all_trades.extend(trades)
     
     return {'coin_stats': coin_stats, 'all_trades': all_trades}
 
@@ -305,6 +336,87 @@ def run_backtest(coins=None):
 # ═══════════════════════════════════════════
 # 三遍全量校验（内嵌到工作流）
 # ═══════════════════════════════════════════
+
+
+def simulate_trades_multi(coin_dfs, all_signals):
+    """4并发槽位：10币共享4个仓位槽"""
+    trades = []
+    in_trade = [False] * CFG['max_positions']
+    active = [None] * CFG['max_positions']
+    current_bar = -1
+    
+    for sig in all_signals:
+        df = coin_dfs[sig['df_key']]
+        bar_idx = sig['index']
+        
+        # Process exits for all active trades up to this bar
+        if bar_idx > current_bar:
+            # Check exits bar by bar from current to signal bar
+            # Simplified: exit at signal bar if conditions met
+            for s in range(CFG['max_positions']):
+                if not in_trade[s]: continue
+                p = active[s]
+                entry_df = coin_dfs[p['df_key']]
+                # Find the latest close
+                latest_bar = min(bar_idx, len(entry_df)-1)
+                c = entry_df['Close'].iloc[latest_bar]
+                d = latest_bar - p['entry_bar']
+                
+                # Trailing stop: 2x ATR
+                atr = entry_df['atr_20'].iloc[latest_bar]
+                if pd.notna(atr):
+                    trail_stop = p['lowest_since_entry'] + 2 * atr
+                    if c >= trail_stop:
+                        p['exit_bar'] = latest_bar
+                        p['exit_price'] = c
+                        p['return_pct'] = (p['entry_price']-c)/p['entry_price']*100
+                        p['exit_reason'] = 'trail'
+                        trades.append(p)
+                        in_trade[s] = False
+                        active[s] = None
+                        continue
+                
+                # Update lowest price since entry (SHORT)
+                low = entry_df['Low'].iloc[latest_bar]
+                if low < p['lowest_since_entry']:
+                    p['lowest_since_entry'] = low
+            
+            current_bar = bar_idx
+        
+        # Entry: find available slot
+        if all(in_trade): continue
+        
+        for s in range(CFG['max_positions']):
+            if not in_trade[s]: break
+        else: continue
+        
+        df_for_entry = coin_dfs[sig['df_key']]
+        entry_price = df_for_entry['Close'].iloc[bar_idx]
+        
+        in_trade[s] = True
+        active[s] = {
+            'coin': sig['coin'], 'df_key': sig['df_key'],
+            'entry_bar': bar_idx, 'entry_date': sig['date'],
+            'entry_price': entry_price,
+            'lowest_since_entry': df_for_entry['Low'].iloc[bar_idx],
+            'quality': sig['quality'], 'direction': sig['direction'],
+            'state': sig['state'], 'trap_risk': sig['trap_risk'],
+            'position_usdt': CFG['position_size'],
+        }
+    
+    # Close remaining
+    for s in range(CFG['max_positions']):
+        if in_trade[s]:
+            p = active[s]
+            df = coin_dfs[p['df_key']]
+            c = df['Close'].iloc[-1]
+            p['exit_bar'] = len(df)-1
+            p['exit_price'] = c
+            p['return_pct'] = (p['entry_price']-c)/p['entry_price']*100
+            p['exit_reason'] = 'end'
+            trades.append(p)
+    
+    return trades
 
 def verify(trades, dfs=None):
     """三遍校验：数字溯源 → 逻辑一致 → 完整检查
@@ -378,7 +490,7 @@ def verify(trades, dfs=None):
             exit_types[t.get('exit_reason','?')] = exit_types.get(t.get('exit_reason','?'), 0) + 1
         # 检查是否有未知退出方式
         for reason in exit_types:
-            if reason not in ['TP','SL','5d','end']:
+            if reason not in ['TP','SL','5d','end','trail','15d']:
                 errors['pass3'].append(f"未知退出方式: {reason} ({exit_types[reason]}次)")
         
         # 检查交易时序：exit_bar > entry_bar
