@@ -48,3 +48,53 @@
 2026-06-27 17:03:58     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=24 ms
 2026-06-27 20:41:44     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
 2026-06-27 20:42:10     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 20:48:44     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 20:48:45     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 20:48:47     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-72 ms
+2026-06-27 20:48:58     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 20:49:17     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 20:49:18     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 20:49:20     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-76 ms
+2026-06-27 20:50:03     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 20:50:04     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 20:50:06     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-72 ms
+2026-06-27 20:50:13     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 20:50:14     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 20:50:16     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-106 ms
+2026-06-27 21:12:17     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 21:12:33     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 21:12:34     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 21:12:36     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-61 ms
+2026-06-27 21:12:38     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 21:12:39     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 21:12:41     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-66 ms
+2026-06-27 21:12:43     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 21:12:44     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 21:12:46     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-60 ms
+2026-06-27 21:12:49     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 21:12:50     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 21:12:51     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-56 ms
+2026-06-27 21:12:54     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 21:12:54     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 21:12:56     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-59 ms
+2026-06-27 21:12:59     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 21:13:00     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 21:13:01     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-59 ms
+2026-06-27 21:13:04     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-27 21:13:05     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-27 21:13:07     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=-60 ms
+2026-06-28 01:22:39     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-28 01:22:41     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-28 01:22:43     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=106 ms
+2026-06-28 01:22:43     INFO [panzer.binance.public.spot] klines_range: 2 peticiones en paralelo para BTCUSDT 4h
+2026-06-28 01:22:45     INFO [panzer.binance.public.spot] parallel_get: 2 jobs, 1 lotes, used_local=29
+2026-06-28 01:22:45     INFO [panzer.binance.public.spot] klines_range: 1001 velas obtenidas para BTCUSDT 4h
+2026-06-28 01:23:35     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-28 01:23:36     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-28 01:23:40     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=73 ms
+2026-06-28 01:23:40     INFO [panzer.binance.public.spot] klines_range: 2 peticiones en paralelo para BTCUSDT 4h
+2026-06-28 01:23:42     INFO [panzer.binance.public.spot] parallel_get: 2 jobs, 1 lotes, used_local=29
+2026-06-28 01:23:42     INFO [panzer.binance.public.spot] klines_range: 1501 velas obtenidas para BTCUSDT 4h
+2026-06-28 01:51:34     INFO [panzer.binance.public.spot] Inicializando BinancePublicClient(market=spot)
+2026-06-28 01:51:35     INFO [panzer.binance.public.spot] Rate limiter inicializado: max_per_minute=6000 safety_ratio=0.90
+2026-06-28 01:51:37     INFO [panzer.binance.public.spot] Reloj sincronizado: offset=116 ms
