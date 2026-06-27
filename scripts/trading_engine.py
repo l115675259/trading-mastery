@@ -19,6 +19,26 @@ if not os.environ.get('HTTP_PROXY'):
 if not os.environ.get('HTTPS_PROXY'):
     os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:7890'
 
+# ── Environment bootstrap ──
+def _ensure_env():
+    """Check environment on first import. Guide if missing."""
+    import importlib, sys, subprocess
+    required = {'binpan': 'binpan', 'pandas': 'pandas', 'numpy': 'numpy',
+                'backtrader': 'backtrader', 'requests': 'requests'}
+    missing = []
+    for pkg, mod in required.items():
+        try: importlib.import_module(mod)
+        except ImportError: missing.append(pkg)
+    if missing:
+        pip = f'"{sys.executable}" -m pip install --break-system-packages'
+        print(f"\n  ⚠ Missing packages: {', '.join(missing)}")
+        print(f"  Run: {pip} {' '.join(missing)}")
+        print(f"  Or: python scripts/check_env.py\n")
+    return len(missing) == 0
+
+_ensure_env()
+
+
 # ═══════════════════════════════════════════
 # 统一配置
 # ═══════════════════════════════════════════

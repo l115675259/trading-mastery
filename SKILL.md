@@ -619,3 +619,41 @@ python scripts/trading_bot.py --trade --coin AVAXUSDT \
 ---
 
 *本体系整合了7本经典交易著作的全部知识，配备统一分析引擎和三遍校验系统。*
+
+## 环境引导
+
+### 已有环境（直接使用）
+
+```bash
+# 检查环境
+python scripts/check_env.py
+
+# 直接跑回测/分析
+python scripts/trading_engine.py --backtest
+python scripts/trading_engine.py --analyze AVAXUSDT
+```
+
+引擎启动时自动检测依赖——缺包会提示安装命令，代理自动配置 `127.0.0.1:7890`。
+
+### 新环境（首次安装）
+
+```bash
+# 1. 确认 Python 3.12+
+python3 --version
+
+# 2. 安装依赖
+pip3 install binpan pandas numpy backtrader ccxt requests --break-system-packages
+
+# 3. 检查环境完整性
+python scripts/check_env.py
+
+# 4. 开始使用
+python scripts/trading_engine.py --backtest
+```
+
+### 代理配置
+
+默认代理 `127.0.0.1:7890`。如需更改：
+- 设置环境变量 `HTTP_PROXY` 和 `HTTPS_PROXY`
+- 或修改 `agents/openai.yaml` 中的 proxy 配置
+- 或直接编辑 `trading_engine.py` 顶部的代理地址
