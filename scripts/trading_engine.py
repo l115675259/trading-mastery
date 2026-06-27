@@ -13,6 +13,12 @@ from collections import defaultdict
 import numpy as np
 from rigorous_backtest import fetch_klines, compute_all_indicators
 
+# Auto proxy config
+if not os.environ.get('HTTP_PROXY'):
+    os.environ['HTTP_PROXY'] = 'http://127.0.0.1:7890'
+if not os.environ.get('HTTPS_PROXY'):
+    os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:7890'
+
 # ═══════════════════════════════════════════
 # 统一配置
 # ═══════════════════════════════════════════
