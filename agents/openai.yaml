@@ -1,0 +1,4 @@
+interface:
+  display_name: "Trading Mastery"
+  short_description: "Seven classic trading books synthesized into one complete knowledge system for market analysis, strategy, risk management, and psychology."
+  default_prompt: "Apply all seven classic trading works as one integrated system: analyze trends with candlesticks and technical analysis, identify Elliott Wave structure, execute systematic trend-following strategies with proper position sizing and risk management, and maintain psychological discipline through probability thinking."
