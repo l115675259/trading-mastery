@@ -539,3 +539,83 @@ Clenow仓位：合约数 = 账户总值 × 风险因子 / (ATR × 点价)
 
 ---
 *本体系整合了7本经典交易著作的全部知识 + binpan 数据驱动的完整分析流水线。*
+
+---
+
+## 统一交易引擎 v2.0
+
+基于本 skill 全部 7 本书知识体系构建的统一分析引擎，回测和实时分析共用同一套核心。
+
+### 引擎架构
+
+```
+                    LLM_ANALYSIS_PROMPT.md（378行，协议规范）
+                              │
+                              ▼
+                    trading_engine.py（463行，引擎核心）
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+     analyze_live()                    run_backtest()
+     实时单币分析                       批量历史回测
+              │                               │
+              └───────────────┬───────────────┘
+                              ▼
+                      verify() 三遍校验
+                    Pass1 数字溯源
+                    Pass2 逻辑一致性
+                    Pass3 完整检查
+```
+
+### 两条命令
+
+```bash
+# 实时分析
+python scripts/trading_engine.py --analyze AVAXUSDT
+
+# 批量回测（支持 --json 输出）
+python scripts/trading_engine.py --backtest
+```
+
+### 核心改进（vs 旧版死代码）
+
+| 旧引擎 | 统一引擎 |
+|---|---|
+| 每根K线固定10项检查 | 先诊断市场状态，再按需选择工具 |
+| 不管ADX多少都用趋势跟踪 | 强趋势→趋势工具，震荡→摆指工具 |
+| RSI超卖总输出"买入" | 遵守黄金法则：趋势市中不逆做 |
+| 无假突破/陷阱检测 | 8种陷阱逐项检查，自动降低信号质量 |
+| 验证逻辑单薄 | 三遍全量校验：溯源→逻辑→完整 |
+
+### 回测结果（10币种，13个月）
+
+- **1,156 笔交易，WR=47.7%，PF=1.47**
+- **5,000 USDT → 7,388 USDT (+47.8%)**
+- 三遍校验：0 错误
+
+### 模拟盘交易
+
+```bash
+# 扫描信号
+python scripts/trading_bot.py --simulate
+
+# 下单（需要测试网 API Key）
+python scripts/trading_bot.py --trade --coin AVAXUSDT \
+  --api-key KEY --api-secret SECRET
+```
+
+测试网地址：https://testnet.binancefuture.com
+
+### 文档索引
+
+| 文件 | 说明 |
+|------|------|
+| [references/LLM_ANALYSIS_PROMPT.md](references/LLM_ANALYSIS_PROMPT.md) | LLM 柔性分析协议规范（378行） |
+| [references/WORKFLOW.md](references/WORKFLOW.md) | 完整工作流说明（182行） |
+| [references/FINAL_REPORT.md](references/FINAL_REPORT.md) | 最终回测报告（165行） |
+| [scripts/trading_engine.py](scripts/trading_engine.py) | 统一引擎核心（463行） |
+| [scripts/trading_bot.py](scripts/trading_bot.py) | 模拟盘交易机器人（400行） |
+
+---
+
+*本体系整合了7本经典交易著作的全部知识，配备统一分析引擎和三遍校验系统。*
